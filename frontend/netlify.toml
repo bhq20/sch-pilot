@@ -1,0 +1,28 @@
+[build]
+  base    = "frontend/"
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NEXT_TELEMETRY_DISABLED = "1"
+
+# Plugin oficial do Next.js para Netlify (SSR + rotas dinâmicas)
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Redireciona domínio raiz para HTTPS
+[[redirects]]
+  from   = "http://app.bhqconsultoria.com/*"
+  to     = "https://app.bhqconsultoria.com/:splat"
+  status = 301
+  force  = true
+
+# Headers de segurança
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options        = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy        = "strict-origin-when-cross-origin"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"

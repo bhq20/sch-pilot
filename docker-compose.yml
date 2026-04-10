@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: sch
+      POSTGRES_PASSWORD: sch
+      POSTGRES_DB: sch
+    ports:
+      - "5432:5432"
+    volumes:
+      - sch_pgdata:/var/lib/postgresql/data
+      - ./database/001_schema.sql:/docker-entrypoint-initdb.d/001_schema.sql:ro
+      - ./database/002_seed.sql:/docker-entrypoint-initdb.d/002_seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sch -d sch"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg2://sch:sch@db:5432/sch
+      SECRET_KEY: dev-secret-change-me
+      ACCESS_TOKEN_EXPIRE_MINUTES: "480"
+      ALGORITHM: HS256
+      CORS_ORIGINS: http://localhost:3000
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  sch_pgdata:
